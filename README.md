@@ -16,41 +16,128 @@ Git Gud is designed to make Git usage safer and more intuitive by providing proa
 
 ## Installation
 
-### From Source
+### Prerequisites
 
-```bash
-# Clone the repository
-git clone <repository-url>
-cd git-gud
+- Python 3.8 or higher
+- Git (must be installed and accessible in PATH)
 
-# Install in development mode
-pip install -e .
-
-# Or install with development dependencies
-pip install -e ".[dev]"
-```
-
-### Using pip (when published)
+### Method 1: Install from PyPI (Recommended)
 
 ```bash
 pip install git-gud
+```
+
+### Method 2: Install from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/git-gud/git-gud.git
+cd git-gud
+
+# Install the package
+pip install .
+
+# Or install in development mode with dev dependencies
+pip install -e ".[dev]"
+```
+
+### Method 3: Using requirements.txt
+
+```bash
+# Clone the repository
+git clone https://github.com/git-gud/git-gud.git
+cd git-gud
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install the package
+pip install .
+```
+
+### Verify Installation
+
+```bash
+# Check if git-gud is installed correctly
+git-gud --help
+
+# Verify Git is available
+git --version
 ```
 
 ## Usage
 
 ### Basic Command Execution
 
-```bash
-# Execute a safe Git command
-git-gud --execute "git status"
+Execute Git commands safely with built-in protection against dangerous operations:
 
-# Execute a command that requires confirmation
+```bash
+# Execute safe Git commands (no confirmation required)
+git-gud --execute "git status"
+git-gud --execute "git log --oneline -10"
+git-gud --execute "git diff"
+git-gud --execute "git branch -a"
+
+# Execute potentially dangerous commands (requires confirmation)
 git-gud --execute "git reset --hard HEAD~1"
+git-gud --execute "git push --force origin main"
+git-gud --execute "git clean -fd"
 ```
 
 ### Command Line Options
 
-- `--execute`, `-e`: Execute a Git command with safety checks
+```bash
+git-gud [OPTIONS]
+
+Options:
+  --execute, -e TEXT  Git command to execute with safety checks
+  --help             Show this message and exit
+```
+
+### Examples
+
+#### Safe Operations (Execute Immediately)
+```bash
+# Check repository status
+git-gud -e "git status"
+
+# View commit history
+git-gud -e "git log --graph --oneline -10"
+
+# Show differences
+git-gud -e "git diff HEAD~1"
+
+# List branches
+git-gud -e "git branch -v"
+```
+
+#### Dangerous Operations (Require Confirmation)
+```bash
+# Force push (will prompt for confirmation)
+git-gud -e "git push --force origin feature-branch"
+
+# Hard reset (will prompt for confirmation)  
+git-gud -e "git reset --hard HEAD~3"
+
+# Clean untracked files (will prompt for confirmation)
+git-gud -e "git clean -fd"
+```
+
+### Interactive Confirmation
+
+When Git Gud detects a dangerous operation, it will:
+
+1. Display a warning message explaining the risks
+2. Show which dangerous patterns were detected
+3. Prompt for explicit confirmation with "yes"
+4. Only proceed if you type exactly "yes"
+
+Example:
+```
+⚠️  WARNING: This command will permanently delete uncommitted changes
+Dangerous patterns detected: reset --hard
+Type 'yes' to proceed with this dangerous operation: yes
+```
 
 ## Safety Features
 
@@ -70,20 +157,81 @@ Git Gud automatically detects and warns about dangerous operations including:
 ### Setup Development Environment
 
 ```bash
+# Clone the repository
+git clone https://github.com/git-gud/git-gud.git
+cd git-gud
+
+# Install in development mode with all dev dependencies
+pip install -e ".[dev]"
+
+# Verify installation
+git-gud --help
+```
+
+### Quick Development Setup
+
+For a complete development setup with all tools:
+
+```bash
 # Install development dependencies
 pip install -e ".[dev]"
 
-# Run tests
+# Install pre-commit hooks (optional)
+pre-commit install
+
+# Run initial tests to verify setup
 pytest
 
-# Run tests with coverage
+# Verify the CLI works
+git-gud --help
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run tests with coverage report
 pytest --cov=git_gud --cov-report=term-missing
 
-# Format code
-black git_gud/
+# Run specific test file
+pytest tests/test_cli.py
 
-# Type checking
+# Run tests in verbose mode
+pytest -v
+```
+
+### Code Quality Tools
+
+```bash
+# Format code with black
+black git_gud/ tests/
+
+# Sort imports with isort
+isort git_gud/ tests/
+
+# Type checking with mypy
 mypy git_gud/
+
+# Lint with flake8
+flake8 git_gud/ tests/
+
+# Run all quality checks
+black git_gud/ tests/ && isort git_gud/ tests/ && mypy git_gud/ && flake8 git_gud/ tests/
+```
+
+### Building and Distribution
+
+```bash
+# Build the package
+python -m build
+
+# Install locally from built package
+pip install dist/git_gud-*.whl
+
+# Upload to PyPI (maintainers only)
+python -m twine upload dist/*
 ```
 
 ### Project Structure
@@ -102,6 +250,29 @@ git_gud/
 - Python 3.8+
 - Git (must be installed and accessible in PATH)
 - typer (for CLI interface)
+
+## Troubleshooting
+
+### Common Issues
+
+#### "git-gud: command not found"
+- Ensure you've installed the package: `pip install git-gud`
+- Check that your Python scripts directory is in your PATH
+- Try running with full path: `python -m git_gud.cli --help`
+
+#### "Git is not installed or not available in PATH"
+- Install Git from https://git-scm.com/downloads
+- Ensure `git --version` works in your terminal
+- On Windows, make sure Git is added to your PATH during installation
+
+#### Permission Errors
+- On Unix systems, you may need to use `pip install --user git-gud`
+- Or use a virtual environment: `python -m venv venv && source venv/bin/activate`
+
+#### Import Errors During Development
+- Make sure you're in the project directory
+- Install in development mode: `pip install -e .`
+- Check that all dependencies are installed: `pip install -e ".[dev]"`
 
 ## License
 

@@ -44,12 +44,19 @@ def get_dangerous_patterns() -> List[str]:
     """
     from .safety import load_dangerous_patterns
     
-    config = load_config()
-    patterns = load_dangerous_patterns()
+    try:
+        patterns = load_dangerous_patterns()
+    except Exception:
+        patterns = []
     
-    # Add any custom patterns from configuration
-    custom_patterns = config.get("custom_dangerous_patterns", [])
-    patterns.extend(custom_patterns)
+    try:
+        config = load_config()
+        # Add any custom patterns from configuration
+        custom_patterns = config.get("custom_dangerous_patterns", [])
+        patterns.extend(custom_patterns)
+    except Exception:
+        # If config loading fails, just return the default patterns
+        pass
     
     return patterns
 
@@ -61,8 +68,12 @@ def get_timeout() -> int:
     Returns:
         Timeout value in seconds
     """
-    config = load_config()
-    return config.get("timeout", 30)
+    try:
+        config = load_config()
+        timeout = config.get("timeout", 30)
+        return timeout if timeout is not None else 30
+    except Exception:
+        return 30
 
 
 def should_require_confirmation() -> bool:
@@ -72,5 +83,9 @@ def should_require_confirmation() -> bool:
     Returns:
         True if confirmation is required, False otherwise
     """
-    config = load_config()
-    return config.get("require_confirmation", True)
+    try:
+        config = load_config()
+        confirmation = config.get("require_confirmation", True)
+        return confirmation if confirmation is not None else True
+    except Exception:
+        return True

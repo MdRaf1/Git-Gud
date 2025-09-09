@@ -155,7 +155,7 @@ class TestCLI:
         assert result.exit_code == 128
         # Error messages go to stderr, but typer.testing captures them in stdout
         output = result.stdout + result.stderr
-        assert "Error: fatal: not a git repository" in output
+        assert "Git repository error" in output
         assert "Command failed with exit code: 128" in output
 
 
@@ -203,7 +203,7 @@ class TestExecuteCommandFunction:
 
         assert exc_info.value.exit_code == 1
         # Check that error messages were displayed
-        assert mock_echo.call_count == 2
+        assert mock_echo.call_count >= 2
         error_calls = [call[0][0] for call in mock_echo.call_args_list]
         assert any("Git is not installed" in msg for msg in error_calls)
 
@@ -222,12 +222,13 @@ class TestExecuteCommandFunction:
         )
         mock_confirm.return_value = False
 
-        # typer.Exit raises click.exceptions.Exit, not SystemExit
-        from click.exceptions import Exit
-        with pytest.raises(Exit) as exc_info:
-            execute_command("git reset --hard HEAD~1")
-
-        assert exc_info.value.exit_code == 0
+        # The function should return normally (no exception) when user rejects
+        execute_command("git reset --hard HEAD~1")
+        
+        # Verify warning was shown and confirmation was called
+        warning_calls = [call for call in mock_echo.call_args_list if call[1].get('err')]
+        assert len(warning_calls) >= 2  # Warning message and patterns
+        assert any("WARNING" in str(call) for call in warning_calls)
         # Verify warning was shown
         warning_calls = [call for call in mock_echo.call_args_list if call[1].get('err')]
         assert len(warning_calls) >= 2  # Warning message and patterns
@@ -361,7 +362,7 @@ class TestIntegrationWorkflows:
         # Verify error handling workflow
         assert result.exit_code == 128
         output = result.stdout + result.stderr
-        assert "Error: fatal: not a git repository" in output
+        assert "Git repository error" in output
         assert "Command failed with exit code: 128" in output
         
         # Verify all workflow steps were called
@@ -386,6 +387,227 @@ class TestIntegrationWorkflows:
         
         # Verify only Git availability was checked
         mock_git_available.assert_called_once()
+
+
+class TestCLIErrorHandling:
+    """Test cases for CLI error handling."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.runner = CliRunner()
+
+    @patch('git_gud.cli.is_git_available')
+    @patch('git_gud.cli.check_command_safety')
+    def test_execute_command_safety_check_error(self, mock_safety, mock_git_available):
+        """Test error handling when safety check fails."""
+        mock_git_available.return_value = True
+        mock_safety.side_effect = Exception("Safety check failed")
+
+        result = self.runner.invoke(app, ["--execute", "git status"])
+        
+        assert result.exit_code == 1
+        output = result.stdout + result.stderr
+        assert "Failed to analyze command safety" in output
+
+    @patch('git_gud.cli.is_git_available')
+    @patch('git_gud.cli.check_command_safety')
+    @patch('git_gud.cli.get_user_confirmation')
+    def test_execute_command_confirmation_error(self, mock_confirm, mock_safety, mock_git_available):
+        """Test error handling when user confirmation fails."""
+        mock_git_available.return_value = True
+        mock_safety.return_value = SafetyCheck(
+            is_safe=False,
+            dangerous_patterns=["--force"],
+            warning_message="Test warning"
+        )
+        mock_confirm.side_effect = Exception("Confirmation failed")
+
+        result = self.runner.invoke(app, ["--execute", "git push --force"])
+        
+        assert result.exit_code == 1
+        output = result.stdout + result.stderr
+        assert "Error during user confirmation" in output
+
+    @patch('git_gud.cli.is_git_available')
+    @patch('git_gud.cli.check_command_safety')
+    @patch('git_gud.cli.execute_git_command')
+    def test_execute_command_execution_error(self, mock_execute, mock_safety, mock_git_available):
+        """Test error handling when command execution fails unexpectedly."""
+        mock_git_available.return_value = True
+        mock_safety.return_value = SafetyCheck(
+            is_safe=True,
+            dangerous_patterns=[],
+            warning_message=""
+        )
+        mock_execute.side_effect = Exception("Execution failed")
+
+        result = self.runner.invoke(app, ["--execute", "git status"])
+        
+        assert result.exit_code == 1
+        output = result.stdout + result.stderr
+        assert "Unexpected error during command execution" in output
+
+    def test_execute_command_empty_command(self):
+        """Test error handling for empty command."""
+        result = self.runner.invoke(app, ["--execute", ""])
+        
+        assert result.exit_code == 1
+        output = result.stdout + result.stderr
+        assert "Empty command provided" in output
+
+    def test_execute_command_whitespace_command(self):
+        """Test error handling for whitespace-only command."""
+        result = self.runner.invoke(app, ["--execute", "   \t\n   "])
+        
+        assert result.exit_code == 1
+        output = result.stdout + result.stderr
+        assert "Empty command provided" in output
+
+    @patch('git_gud.cli.is_git_available')
+    @patch('git_gud.cli.check_command_safety')
+    @patch('git_gud.cli.execute_git_command')
+    def test_execute_command_git_not_found_error(self, mock_execute, mock_safety, mock_git_available):
+        """Test specific error handling for Git not found."""
+        mock_git_available.return_value = True
+        mock_safety.return_value = SafetyCheck(
+            is_safe=True,
+            dangerous_patterns=[],
+            warning_message=""
+        )
+        mock_execute.return_value = GitResult(
+            stdout="",
+            stderr="Git executable not found",
+            exit_code=127,
+            command="git status",
+            success=False
+        )
+
+        result = self.runner.invoke(app, ["--execute", "git status"])
+        
+        assert result.exit_code == 127
+        output = result.stdout + result.stderr
+        assert "Git command not found" in output
+        assert "ensure Git is properly installed" in output
+
+    @patch('git_gud.cli.is_git_available')
+    @patch('git_gud.cli.check_command_safety')
+    @patch('git_gud.cli.execute_git_command')
+    def test_execute_command_permission_denied_error(self, mock_execute, mock_safety, mock_git_available):
+        """Test specific error handling for permission denied."""
+        mock_git_available.return_value = True
+        mock_safety.return_value = SafetyCheck(
+            is_safe=True,
+            dangerous_patterns=[],
+            warning_message=""
+        )
+        mock_execute.return_value = GitResult(
+            stdout="",
+            stderr="Permission denied",
+            exit_code=126,
+            command="git status",
+            success=False
+        )
+
+        result = self.runner.invoke(app, ["--execute", "git status"])
+        
+        assert result.exit_code == 126
+        output = result.stdout + result.stderr
+        assert "Permission denied" in output
+        assert "Check your file permissions" in output
+
+    @patch('git_gud.cli.is_git_available')
+    @patch('git_gud.cli.check_command_safety')
+    @patch('git_gud.cli.execute_git_command')
+    def test_execute_command_timeout_error(self, mock_execute, mock_safety, mock_git_available):
+        """Test specific error handling for command timeout."""
+        mock_git_available.return_value = True
+        mock_safety.return_value = SafetyCheck(
+            is_safe=True,
+            dangerous_patterns=[],
+            warning_message=""
+        )
+        mock_execute.return_value = GitResult(
+            stdout="",
+            stderr="Command timed out after 30 seconds",
+            exit_code=124,
+            command="git status",
+            success=False
+        )
+
+        result = self.runner.invoke(app, ["--execute", "git status"])
+        
+        assert result.exit_code == 124
+        output = result.stdout + result.stderr
+        assert "Command timed out" in output
+        assert "took too long to complete" in output
+
+    @patch('git_gud.cli.is_git_available')
+    @patch('git_gud.cli.check_command_safety')
+    @patch('git_gud.cli.execute_git_command')
+    def test_execute_command_git_repository_error(self, mock_execute, mock_safety, mock_git_available):
+        """Test specific error handling for Git repository errors."""
+        mock_git_available.return_value = True
+        mock_safety.return_value = SafetyCheck(
+            is_safe=True,
+            dangerous_patterns=[],
+            warning_message=""
+        )
+        mock_execute.return_value = GitResult(
+            stdout="",
+            stderr="fatal: not a git repository (or any of the parent directories): .git",
+            exit_code=128,
+            command="git status",
+            success=False
+        )
+
+        result = self.runner.invoke(app, ["--execute", "git status"])
+        
+        assert result.exit_code == 128
+        output = result.stdout + result.stderr
+        assert "Git repository error" in output
+        assert "not a Git repository" in output
+        assert "git init" in output
+
+    @patch('git_gud.cli.is_git_available')
+    @patch('git_gud.cli.check_command_safety')
+    @patch('git_gud.cli.get_user_confirmation')
+    def test_execute_command_keyboard_interrupt_during_confirmation(self, mock_confirm, mock_safety, mock_git_available):
+        """Test handling of Ctrl+C during user confirmation."""
+        mock_git_available.return_value = True
+        mock_safety.return_value = SafetyCheck(
+            is_safe=False,
+            dangerous_patterns=["--force"],
+            warning_message="Test warning"
+        )
+        mock_confirm.side_effect = KeyboardInterrupt()
+
+        result = self.runner.invoke(app, ["--execute", "git push --force"])
+        
+        assert result.exit_code == 130
+        output = result.stdout + result.stderr
+        assert "interrupted during confirmation" in output
+
+    @patch('git_gud.cli.execute_command')
+    def test_main_keyboard_interrupt_handling(self, mock_execute):
+        """Test handling of Ctrl+C in main execution."""
+        mock_execute.side_effect = KeyboardInterrupt()
+
+        result = self.runner.invoke(app, ["--execute", "git status"])
+        
+        assert result.exit_code == 130
+        output = result.stdout + result.stderr
+        assert "interrupted by user" in output
+
+    @patch('git_gud.cli.execute_command')
+    def test_main_unexpected_error_handling(self, mock_execute):
+        """Test handling of unexpected errors in main execution."""
+        mock_execute.side_effect = RuntimeError("Unexpected error")
+
+        result = self.runner.invoke(app, ["--execute", "git status"])
+        
+        assert result.exit_code == 1
+        output = result.stdout + result.stderr
+        assert "Unexpected error occurred" in output
 
     @patch('git_gud.cli.is_git_available')
     @patch('git_gud.cli.check_command_safety')

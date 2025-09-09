@@ -1,5 +1,6 @@
-# Core dependencies
-typer>=0.9.0
+# Git Gud - Core Dependencies
+# Install with: pip install -r requirements.txt
+# For development: pip install -e ".[dev]"
 
-# Development dependencies (install with: pip install -r requirements.txt -r requirements-dev.txt)
-# Or use: pip install -e ".[dev]"
+# Core runtime dependencies
+typer>=0.9.0

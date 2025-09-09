@@ -11,5 +11,8 @@ git_gud.egg-info/dependency_links.txt
 git_gud.egg-info/entry_points.txt
 git_gud.egg-info/requires.txt
 git_gud.egg-info/top_level.txt
+tests/test_cli.py
+tests/test_config.py
 tests/test_git_ops.py
+tests/test_integration.py
 tests/test_safety.py

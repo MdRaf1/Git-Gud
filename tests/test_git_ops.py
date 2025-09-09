@@ -175,9 +175,11 @@ class TestGitAvailability:
 class TestExecuteGitCommand:
     """Test cases for execute_git_command function."""
     
+    @patch('git_gud.git_ops.is_git_available')
     @patch('subprocess.run')
-    def test_execute_git_command_success(self, mock_run):
+    def test_execute_git_command_success(self, mock_run, mock_git_available):
         """Test successful Git command execution."""
+        mock_git_available.return_value = True
         mock_result = MagicMock()
         mock_result.stdout = "On branch main"
         mock_result.stderr = ""
@@ -201,9 +203,11 @@ class TestExecuteGitCommand:
             shell=False
         )
     
+    @patch('git_gud.git_ops.is_git_available')
     @patch('subprocess.run')
-    def test_execute_git_command_with_git_prefix(self, mock_run):
+    def test_execute_git_command_with_git_prefix(self, mock_run, mock_git_available):
         """Test command execution with 'git' prefix in command."""
+        mock_git_available.return_value = True
         mock_result = MagicMock()
         mock_result.stdout = "test output"
         mock_result.stderr = ""
@@ -260,7 +264,7 @@ class TestExecuteGitCommand:
         
         assert isinstance(result, GitResult)
         assert result.stdout == ""
-        assert "Subprocess error: Test error" in result.stderr
+        assert "Subprocess error occurred: Test error" in result.stderr
         assert result.exit_code == 1
         assert result.success is False
     
@@ -303,3 +307,164 @@ class TestExecuteGitCommand:
         )
         
         assert result.command == "log --oneline -n 5"
+
+
+class TestExecuteGitCommandErrorHandling:
+    """Test cases for error handling in execute_git_command function."""
+    
+    @patch('git_gud.git_ops.is_git_available')
+    def test_execute_git_command_git_not_available(self, mock_git_available):
+        """Test command execution when Git is not available."""
+        mock_git_available.return_value = False
+        
+        result = execute_git_command("status")
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 127
+        assert "Git is not installed" in result.stderr
+        assert result.stdout == ""
+        assert result.command == "status"
+    
+    @patch('git_gud.git_ops.is_git_available')
+    def test_execute_git_command_empty_command(self, mock_git_available):
+        """Test command execution with empty command."""
+        mock_git_available.return_value = True
+        
+        result = execute_git_command("")
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 1
+        assert "Empty command provided" in result.stderr
+        assert result.command == ""
+    
+    @patch('git_gud.git_ops.is_git_available')
+    def test_execute_git_command_whitespace_only_command(self, mock_git_available):
+        """Test command execution with whitespace-only command."""
+        mock_git_available.return_value = True
+        
+        result = execute_git_command("   \t\n   ")
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 1
+        assert "Empty command provided" in result.stderr
+    
+    @patch('git_gud.git_ops.is_git_available')
+    def test_execute_git_command_git_only_command(self, mock_git_available):
+        """Test command execution with only 'git' as command."""
+        mock_git_available.return_value = True
+        
+        result = execute_git_command("git")
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 1
+        assert "Invalid Git command format" in result.stderr
+        assert result.command == "git"
+    
+    @patch('git_gud.git_ops.is_git_available')
+    @patch('subprocess.run')
+    def test_execute_git_command_file_not_found_error(self, mock_run, mock_git_available):
+        """Test command execution with FileNotFoundError."""
+        mock_git_available.return_value = True
+        mock_run.side_effect = FileNotFoundError("Git executable not found")
+        
+        result = execute_git_command("status")
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 127
+        assert "Git executable not found" in result.stderr
+        assert result.command == "status"
+    
+    @patch('git_gud.git_ops.is_git_available')
+    @patch('subprocess.run')
+    def test_execute_git_command_permission_error(self, mock_run, mock_git_available):
+        """Test command execution with PermissionError."""
+        mock_git_available.return_value = True
+        mock_run.side_effect = PermissionError("Permission denied")
+        
+        result = execute_git_command("status")
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 126
+        assert "Permission denied" in result.stderr
+        assert result.command == "status"
+    
+    @patch('git_gud.git_ops.is_git_available')
+    @patch('subprocess.run')
+    def test_execute_git_command_os_error(self, mock_run, mock_git_available):
+        """Test command execution with OSError."""
+        mock_git_available.return_value = True
+        mock_run.side_effect = OSError("System error occurred")
+        
+        result = execute_git_command("status")
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 1
+        assert "System error occurred" in result.stderr
+        assert result.command == "status"
+    
+    @patch('git_gud.git_ops.is_git_available')
+    @patch('subprocess.run')
+    def test_execute_git_command_timeout_improved_message(self, mock_run, mock_git_available):
+        """Test improved timeout error message."""
+        mock_git_available.return_value = True
+        mock_run.side_effect = subprocess.TimeoutExpired(["git", "status"], 30)
+        
+        result = execute_git_command("status")
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 124
+        assert "timed out after 30 seconds" in result.stderr
+        assert "may be waiting for input" in result.stderr
+        assert result.command == "status"
+    
+    @patch('git_gud.git_ops.is_git_available')
+    @patch('subprocess.run')
+    def test_execute_git_command_subprocess_error_improved(self, mock_run, mock_git_available):
+        """Test improved subprocess error handling."""
+        mock_git_available.return_value = True
+        mock_run.side_effect = subprocess.SubprocessError("Subprocess failed")
+        
+        result = execute_git_command("status")
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 1
+        assert "Subprocess error occurred" in result.stderr
+        assert "Subprocess failed" in result.stderr
+        assert result.command == "status"
+    
+    @patch('git_gud.git_ops.is_git_available')
+    @patch('subprocess.run')
+    def test_execute_git_command_unexpected_error(self, mock_run, mock_git_available):
+        """Test handling of unexpected errors."""
+        mock_git_available.return_value = True
+        mock_run.side_effect = RuntimeError("Unexpected error")
+        
+        result = execute_git_command("status")
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 1
+        assert "Unexpected error occurred" in result.stderr
+        assert "Unexpected error" in result.stderr
+        assert result.command == "status"
+    
+    @patch('git_gud.git_ops.is_git_available')
+    def test_execute_git_command_none_command(self, mock_git_available):
+        """Test error handling with None command."""
+        mock_git_available.return_value = True
+        
+        result = execute_git_command(None)
+        
+        assert isinstance(result, GitResult)
+        assert result.success is False
+        assert result.exit_code == 1
+        assert "Empty command provided" in result.stderr

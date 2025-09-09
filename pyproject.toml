@@ -31,13 +31,21 @@ dependencies = [
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
     "black>=23.0.0",
     "flake8>=6.0.0",
     "mypy>=1.0.0",
+    "isort>=5.12.0",
+    "pre-commit>=3.0.0",
 ]
 
 [project.scripts]
 git-gud = "git_gud.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/git-gud/git-gud"
+Repository = "https://github.com/git-gud/git-gud"
+Issues = "https://github.com/git-gud/git-gud/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -59,3 +67,8 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "--cov=git_gud --cov-report=term-missing"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88

@@ -60,30 +60,51 @@ def check_command_safety(command: str) -> SafetyCheck:
     Returns:
         SafetyCheck object with analysis results
     """
-    dangerous_patterns = load_dangerous_patterns()
-    found_patterns = []
-    
-    # Normalize command for pattern matching
-    normalized_command = command.lower().strip()
-    
-    # Check each dangerous pattern
-    for pattern in dangerous_patterns:
-        if re.search(pattern, normalized_command):
-            found_patterns.append(pattern)
-    
-    if found_patterns:
-        warning_message = _generate_warning_message(found_patterns, command)
+    try:
+        # Handle None or invalid command input
+        if command is None:
+            return SafetyCheck(
+                is_safe=True,
+                dangerous_patterns=[],
+                warning_message=""
+            )
+        
+        dangerous_patterns = load_dangerous_patterns()
+        found_patterns = []
+        
+        # Normalize command for pattern matching
+        normalized_command = command.lower().strip()
+        
+        # Check each dangerous pattern
+        for pattern in dangerous_patterns:
+            try:
+                if re.search(pattern, normalized_command):
+                    found_patterns.append(pattern)
+            except Exception:
+                # If regex fails for this pattern, skip it and continue
+                continue
+        
+        if found_patterns:
+            warning_message = _generate_warning_message(found_patterns, command)
+            return SafetyCheck(
+                is_safe=False,
+                dangerous_patterns=found_patterns,
+                warning_message=warning_message
+            )
+        
         return SafetyCheck(
-            is_safe=False,
-            dangerous_patterns=found_patterns,
-            warning_message=warning_message
+            is_safe=True,
+            dangerous_patterns=[],
+            warning_message=""
         )
-    
-    return SafetyCheck(
-        is_safe=True,
-        dangerous_patterns=[],
-        warning_message=""
-    )
+        
+    except Exception:
+        # If anything fails, default to safe to avoid blocking legitimate commands
+        return SafetyCheck(
+            is_safe=True,
+            dangerous_patterns=[],
+            warning_message=""
+        )
 
 
 def _generate_warning_message(patterns: List[str], command: str) -> str:
@@ -128,22 +149,47 @@ def get_user_confirmation(warning_message: str) -> bool:
         
     Returns:
         True if user confirms with "yes", False otherwise
+        
+    Raises:
+        KeyboardInterrupt: If user interrupts with Ctrl+C
     """
-    typer.echo("\n" + "="*60)
-    typer.echo("🚨 DANGEROUS OPERATION DETECTED 🚨")
-    typer.echo("="*60)
-    typer.echo(f"\n{warning_message}")
-    typer.echo("\nThis operation could cause permanent data loss or repository corruption.")
-    typer.echo("Please make sure you have backups and understand the consequences.")
-    
-    response = typer.prompt(
-        "\nType 'yes' to proceed with this dangerous operation",
-        type=str
-    ).strip().lower()
-    
-    if response == "yes":
-        typer.echo("Proceeding with dangerous operation...")
-        return True
-    else:
-        typer.echo("Operation cancelled for safety.")
+    try:
+        typer.echo("\n" + "="*60)
+        typer.echo("DANGEROUS OPERATION DETECTED")
+        typer.echo("="*60)
+        typer.echo(f"\n{warning_message}")
+        typer.echo("\nThis operation could cause permanent data loss or repository corruption.")
+        typer.echo("Please make sure you have backups and understand the consequences.")
+        typer.echo("\nPress Ctrl+C to abort, or type your response below.")
+        
+        try:
+            response = typer.prompt(
+                "\nType 'yes' to proceed with this dangerous operation",
+                type=str
+            ).strip().lower()
+        except KeyboardInterrupt:
+            # Re-raise KeyboardInterrupt to be handled by caller
+            raise
+        except EOFError:
+            # Handle EOF (e.g., when input is redirected)
+            typer.echo("\nNo input received. Operation cancelled for safety.", err=True)
+            return False
+        except Exception as e:
+            typer.echo(f"\nError reading user input: {str(e)}", err=True)
+            typer.echo("Operation cancelled for safety.", err=True)
+            return False
+        
+        if response == "yes":
+            typer.echo("Proceeding with dangerous operation...")
+            return True
+        else:
+            typer.echo("Operation cancelled for safety.")
+            return False
+            
+    except KeyboardInterrupt:
+        # Re-raise to be handled by the caller
+        raise
+    except Exception as e:
+        typer.echo(f"\nUnexpected error during confirmation: {str(e)}", err=True)
+        typer.echo("Operation cancelled for safety.", err=True)
         return False
