@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+git_gud/__init__.py
+git_gud/cli.py
+git_gud/config.py
+git_gud/git_ops.py
+git_gud/safety.py
+git_gud.egg-info/PKG-INFO
+git_gud.egg-info/SOURCES.txt
+git_gud.egg-info/dependency_links.txt
+git_gud.egg-info/entry_points.txt
+git_gud.egg-info/requires.txt
+git_gud.egg-info/top_level.txt
+tests/test_git_ops.py
+tests/test_safety.py

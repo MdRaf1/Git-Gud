@@ -1,0 +1,2 @@
+[console_scripts]
+git-gud = git_gud.cli:main
