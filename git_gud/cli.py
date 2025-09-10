@@ -5,12 +5,13 @@ This module provides the command-line interface and entry point for the applicat
 It handles argument parsing and coordinates between the safety and git_ops modules.
 """
 
-from typing import Optional
+from typing import Optional, List
 import typer
 import signal
 import sys
 from .git_ops import execute_git_command, is_git_available
 from .safety import check_command_safety, get_user_confirmation
+from .ai import translate_to_git_sync
 
 app = typer.Typer(
     name="git-gud",
@@ -19,28 +20,47 @@ app = typer.Typer(
 )
 
 
-@app.callback(invoke_without_command=True)
+@app.command()
 def main(
     execute: Optional[str] = typer.Option(
         None,
         "--execute",
         "-e",
         help="Git command to execute with safety checks",
+    ),
+    phrase: Optional[List[str]] = typer.Argument(
+        None,
+        help="Natural language description of what you want to do"
     )
 ) -> None:
     """
     An AI-powered command-line assistant for safer Git usage.
     
     Execute Git commands with safety checks and user confirmation for dangerous operations.
+    Use natural language to describe what you want to do, or use --execute for direct commands.
     """
     try:
-        if execute is None:
-            typer.echo("Error: No command provided", err=True)
-            typer.echo("Usage: git-gud --execute '<git_command>'", err=True)
-            typer.echo("Example: git-gud --execute 'git status'", err=True)
-            raise typer.Exit(1)
+        # If --execute flag is used, use Phase 1 workflow
+        if execute is not None:
+            execute_command(execute)
+            return
         
-        execute_command(execute)
+        # If natural language arguments provided, use Phase 2 workflow
+        if phrase:
+            natural_language = ' '.join(phrase)
+            execute_natural_language(natural_language)
+            return
+        
+        # No input provided at all
+        typer.echo("Error: No command or phrase provided", err=True)
+        typer.echo("Usage:", err=True)
+        typer.echo("  git-gud --execute '<git_command>'  # Execute specific Git command", err=True)
+        typer.echo("  git-gud <natural_language>         # Translate natural language to Git", err=True)
+        typer.echo("Examples:", err=True)
+        typer.echo("  git-gud --execute 'git status'", err=True)
+        typer.echo("  git-gud show me the last 5 commits", err=True)
+        typer.echo("  git-gud create a new branch called feature", err=True)
+        raise typer.Exit(1)
         
     except KeyboardInterrupt:
         typer.echo("\n\nOperation interrupted by user (Ctrl+C).", err=True)
@@ -60,6 +80,55 @@ def _handle_interrupt(signum, frame):
     typer.echo("\n\nOperation interrupted by user (Ctrl+C).", err=True)
     typer.echo("Exiting safely...", err=True)
     sys.exit(130)  # Standard exit code for Ctrl+C
+
+
+def execute_natural_language(phrase: str) -> None:
+    """
+    Execute a natural language phrase by translating it to a Git command.
+    
+    Args:
+        phrase: Natural language description of what the user wants to do
+    """
+    try:
+        # Validate phrase input
+        if not phrase or not phrase.strip():
+            typer.echo("Error: Empty phrase provided", err=True)
+            typer.echo("Please describe what you want to do with Git", err=True)
+            raise typer.Exit(1)
+        
+        typer.echo(f"🤖 Translating: '{phrase}'")
+        
+        # Translate natural language to Git command
+        try:
+            git_command = translate_to_git_sync(phrase)
+            typer.echo(f"💡 Suggested command: {git_command}")
+        except ValueError as e:
+            if "OPENROUTER_API_KEY" in str(e):
+                typer.echo("Error: OpenRouter API key not found", err=True)
+                typer.echo("Please set the OPENROUTER_API_KEY environment variable", err=True)
+                typer.echo("Visit https://openrouter.ai to get your API key", err=True)
+            else:
+                typer.echo(f"Error: {str(e)}", err=True)
+            raise typer.Exit(1)
+        except Exception as e:
+            typer.echo(f"Error: Failed to translate phrase: {str(e)}", err=True)
+            typer.echo("Please try rephrasing your request or use --execute with a direct Git command", err=True)
+            raise typer.Exit(1)
+        
+        # Execute the translated command using existing workflow
+        execute_command(git_command)
+        
+    except KeyboardInterrupt:
+        typer.echo("\n\nOperation interrupted by user (Ctrl+C).", err=True)
+        typer.echo("Exiting safely...", err=True)
+        raise typer.Exit(130)
+    except typer.Exit:
+        # Re-raise typer.Exit to preserve exit codes
+        raise
+    except Exception as e:
+        typer.echo(f"Error: Unexpected error occurred: {str(e)}", err=True)
+        typer.echo("Please report this issue if it persists", err=True)
+        raise typer.Exit(1)
 
 
 def execute_command(command: str) -> None:

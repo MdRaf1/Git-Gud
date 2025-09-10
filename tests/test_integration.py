@@ -419,8 +419,8 @@ class TestErrorHandlingWorkflows:
         
         assert result.exit_code == 1
         output = result.stdout + result.stderr
-        assert "Error: No command provided" in output
-        assert "Usage: git-gud --execute" in output
+        assert "Error: No command or phrase provided" in output
+        assert "git-gud --execute '<git_command>'" in output
 
 
 class TestKeyboardInterruptWorkflows:

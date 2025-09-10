@@ -38,8 +38,8 @@ class TestCLI:
         assert result.exit_code == 1
         # Error messages go to stderr, but typer.testing captures them in stdout
         output = result.stdout + result.stderr
-        assert "Error: No command provided" in output
-        assert "Usage: git-gud --execute" in output
+        assert "Error: No command or phrase provided" in output
+        assert "git-gud --execute '<git_command>'" in output
 
     @patch('git_gud.cli.is_git_available')
     @patch('git_gud.cli.check_command_safety')

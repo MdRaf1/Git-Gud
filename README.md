@@ -20,6 +20,7 @@ Git Gud is designed to make Git usage safer and more intuitive by providing proa
 
 - Python 3.8 or higher
 - Git (must be installed and accessible in PATH)
+- OpenRouter API key (for natural language features)
 
 ### Method 1: Install from PyPI (Recommended)
 
@@ -63,13 +64,58 @@ git-gud --help
 
 # Verify Git is available
 git --version
+
+# Set up OpenRouter API key for natural language features
+export OPENROUTER_API_KEY="your-api-key-here"
+```
+
+### OpenRouter API Setup
+
+To use the natural language features, you need an OpenRouter API key:
+
+1. Visit [OpenRouter](https://openrouter.ai) and create an account
+2. Generate an API key from your dashboard
+3. Set the environment variable:
+
+```bash
+# Linux/macOS
+export OPENROUTER_API_KEY="your-api-key-here"
+
+# Windows (Command Prompt)
+set OPENROUTER_API_KEY=your-api-key-here
+
+# Windows (PowerShell)
+$env:OPENROUTER_API_KEY="your-api-key-here"
+```
+
+**Note**: Without an API key, you can still use the `--execute` flag for direct Git command execution.
 ```
 
 ## Usage
 
-### Basic Command Execution
+Git Gud offers two ways to interact with Git:
 
-Execute Git commands safely with built-in protection against dangerous operations:
+1. **Direct Git Commands** (Phase 1): Execute specific Git commands with safety checks
+2. **Natural Language** (Phase 2): Describe what you want to do in plain English
+
+### Natural Language Interface (Phase 2)
+
+Describe what you want to do in natural language, and Git Gud will translate it to the appropriate Git command:
+
+```bash
+# Natural language examples
+git-gud show me the current status
+git-gud list all branches
+git-gud show me the last 5 commits
+git-gud create a new branch called feature-auth
+git-gud switch to the main branch
+git-gud show differences since last commit
+git-gud add all files and commit with message "fix bug"
+```
+
+### Direct Command Execution (Phase 1)
+
+Execute Git commands directly with built-in protection against dangerous operations:
 
 ```bash
 # Execute safe Git commands (no confirmation required)
@@ -87,7 +133,10 @@ git-gud --execute "git clean -fd"
 ### Command Line Options
 
 ```bash
-git-gud [OPTIONS]
+git-gud [OPTIONS] [PHRASE]...
+
+Arguments:
+  [PHRASE]...         Natural language description of what you want to do
 
 Options:
   --execute, -e TEXT  Git command to execute with safety checks
@@ -250,6 +299,8 @@ git_gud/
 - Python 3.8+
 - Git (must be installed and accessible in PATH)
 - typer (for CLI interface)
+- openai (for AI-powered natural language translation)
+- OpenRouter API key (for natural language features)
 
 ## Troubleshooting
 
@@ -284,6 +335,6 @@ Contributions are welcome! Please read the contributing guidelines and submit pu
 
 ## Roadmap
 
-- **Phase 1** (Current): Core CLI functionality and safety mechanisms
-- **Phase 2**: AI-powered natural language to Git command translation
-- **Phase 3**: Advanced context awareness and personalized suggestions
+- **Phase 1** ✅ (Complete): Core CLI functionality and safety mechanisms
+- **Phase 2** ✅ (Complete): AI-powered natural language to Git command translation
+- **Phase 3** (Planned): Advanced context awareness and personalized suggestions
