@@ -182,7 +182,7 @@ class TestDangerousCommandWorkflows:  # pylint: disable=attribute-defined-outsid
 
         # Verify workflow stops at confirmation
         assert result.exit_code == 0
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Command execution aborted by user" in output
 
         # Verify workflow steps up to confirmation
@@ -232,7 +232,7 @@ class TestDangerousCommandWorkflows:  # pylint: disable=attribute-defined-outsid
 
         # Verify workflow stops at confirmation
         assert result.exit_code == 0
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Command execution aborted by user" in output
 
         # Verify workflow steps up to confirmation
@@ -286,7 +286,7 @@ class TestErrorHandlingWorkflows:  # pylint: disable=attribute-defined-outside-i
 
             # Verify workflow stops at Git check
             assert result.exit_code == 1
-            output = result.stdout + result.stderr
+            output = result.output
             assert "Error: Git is not installed" in output
             assert "Please install Git" in output
 
@@ -309,7 +309,7 @@ class TestErrorHandlingWorkflows:  # pylint: disable=attribute-defined-outside-i
 
         # Verify error handling workflow
         assert result.exit_code == 128
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Git repository error" in output
         assert "not a Git repository" in output
         assert "git init" in output
@@ -337,7 +337,7 @@ class TestErrorHandlingWorkflows:  # pylint: disable=attribute-defined-outside-i
 
         # Verify error handling workflow
         assert result.exit_code == 126
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Permission denied" in output
         assert "Check your file permissions" in output
 
@@ -364,7 +364,7 @@ class TestErrorHandlingWorkflows:  # pylint: disable=attribute-defined-outside-i
 
         # Verify error handling workflow
         assert result.exit_code == 124
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Command timed out" in output
         assert "took too long to complete" in output
 
@@ -385,7 +385,7 @@ class TestErrorHandlingWorkflows:  # pylint: disable=attribute-defined-outside-i
 
         # Verify error handling workflow
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Failed to analyze command safety" in output
         assert "Command execution aborted for safety reasons" in output
 
@@ -406,7 +406,7 @@ class TestErrorHandlingWorkflows:  # pylint: disable=attribute-defined-outside-i
 
         # Verify error handling workflow
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Error during user confirmation" in output
         assert "Command execution aborted for safety reasons" in output
 
@@ -419,7 +419,7 @@ class TestErrorHandlingWorkflows:  # pylint: disable=attribute-defined-outside-i
         result = self.runner.invoke(app, ["--execute", ""])
 
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Empty command provided" in output
 
     def test_no_command_provided_workflow(self):
@@ -427,7 +427,7 @@ class TestErrorHandlingWorkflows:  # pylint: disable=attribute-defined-outside-i
         result = self.runner.invoke(app, [])
 
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Error: No command or phrase provided" in output
         assert "git-sensei --execute '<git_command>'" in output
 
@@ -454,7 +454,7 @@ class TestKeyboardInterruptWorkflows:  # pylint: disable=attribute-defined-outsi
 
         # Verify interrupt handling workflow
         assert result.exit_code == 130
-        output = result.stdout + result.stderr
+        output = result.output
         assert "interrupted during confirmation" in output
 
         # Verify workflow execution up to interrupt
@@ -472,7 +472,7 @@ class TestKeyboardInterruptWorkflows:  # pylint: disable=attribute-defined-outsi
 
         # Verify interrupt handling workflow
         assert result.exit_code == 130
-        output = result.stdout + result.stderr
+        output = result.output
         assert "interrupted by user" in output
 
 
@@ -592,7 +592,7 @@ class TestRealGitIntegration:  # pylint: disable=attribute-defined-outside-init
 
             # Verify error handling
             assert result.exit_code == 128
-            output = result.stdout + result.stderr
+            output = result.output
             assert "Git repository error" in output
 
         finally:

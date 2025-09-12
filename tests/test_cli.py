@@ -35,7 +35,7 @@ class TestCLI:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--help"])
         assert result.exit_code == 0
         # Remove ANSI color codes for testing
-        clean_output = result.stdout.encode('ascii', 'ignore').decode('ascii')
+        clean_output = result.output.encode('ascii', 'ignore').decode('ascii')
         assert "--execute" in clean_output or "-e" in clean_output
         assert "Git command" in clean_output
 
@@ -43,8 +43,8 @@ class TestCLI:  # pylint: disable=attribute-defined-outside-init
         """Test that execute command shows error when no command provided."""
         result = self.runner.invoke(app, [])
         assert result.exit_code == 1
-        # Error messages go to stderr, but typer.testing captures them in stdout
-        output = result.stdout + result.stderr
+        # Error messages are captured in result.output
+        output = result.output
         assert "Error: No command or phrase provided" in output
         assert "git-sensei --execute '<git_command>'" in output
 
@@ -85,7 +85,7 @@ class TestCLI:  # pylint: disable=attribute-defined-outside-init
 
         assert result.exit_code == 1
         # Error messages go to stderr, but typer.testing captures them in stdout
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Error: Git is not installed" in output
 
     @patch("git_sensei.cli.is_git_available")
@@ -138,7 +138,7 @@ class TestCLI:  # pylint: disable=attribute-defined-outside-init
 
         assert result.exit_code == 0
         # Error messages go to stderr, but typer.testing captures them in stdout
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Command execution aborted by user" in output
 
     @patch("git_sensei.cli.is_git_available")
@@ -165,7 +165,7 @@ class TestCLI:  # pylint: disable=attribute-defined-outside-init
 
         assert result.exit_code == 128
         # Error messages go to stderr, but typer.testing captures them in stdout
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Git repository error" in output
         assert "Command failed with exit code: 128" in output
 
@@ -351,7 +351,7 @@ class TestIntegrationWorkflows:  # pylint: disable=attribute-defined-outside-ini
 
         # Verify workflow stops at confirmation
         assert result.exit_code == 0
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Command execution aborted by user" in output
 
         # Verify workflow steps up to confirmation
@@ -386,7 +386,7 @@ class TestIntegrationWorkflows:  # pylint: disable=attribute-defined-outside-ini
 
         # Verify error handling workflow
         assert result.exit_code == 128
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Git repository error" in output
         assert "Command failed with exit code: 128" in output
 
@@ -406,7 +406,7 @@ class TestIntegrationWorkflows:  # pylint: disable=attribute-defined-outside-ini
 
         # Verify workflow stops at Git check
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Error: Git is not installed" in output
         assert "Please install Git" in output
 
@@ -431,7 +431,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "git status"])
 
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Failed to analyze command safety" in output
 
     @patch("git_sensei.cli.is_git_available")
@@ -452,7 +452,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "git push --force"])
 
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Error during user confirmation" in output
 
     @patch("git_sensei.cli.is_git_available")
@@ -471,7 +471,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "git status"])
 
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Unexpected error during command execution" in output
 
     def test_execute_command_empty_command(self):
@@ -479,7 +479,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", ""])
 
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Empty command provided" in output
 
     def test_execute_command_whitespace_command(self):
@@ -487,7 +487,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "   \t\n   "])
 
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Empty command provided" in output
 
     @patch("git_sensei.cli.is_git_available")
@@ -512,7 +512,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "git status"])
 
         assert result.exit_code == 127
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Git command not found" in output
         assert "ensure Git is properly installed" in output
 
@@ -538,7 +538,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "git status"])
 
         assert result.exit_code == 126
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Permission denied" in output
         assert "Check your file permissions" in output
 
@@ -564,7 +564,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "git status"])
 
         assert result.exit_code == 124
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Command timed out" in output
         assert "took too long to complete" in output
 
@@ -590,7 +590,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "git status"])
 
         assert result.exit_code == 128
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Git repository error" in output
         assert "not a Git repository" in output
         assert "git init" in output
@@ -613,7 +613,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "git push --force"])
 
         assert result.exit_code == 130
-        output = result.stdout + result.stderr
+        output = result.output
         assert "interrupted during confirmation" in output
 
     @patch("git_sensei.cli.execute_command")
@@ -624,7 +624,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "git status"])
 
         assert result.exit_code == 130
-        output = result.stdout + result.stderr
+        output = result.output
         assert "interrupted by user" in output
 
     @patch("git_sensei.cli.execute_command")
@@ -635,7 +635,7 @@ class TestCLIErrorHandling:  # pylint: disable=attribute-defined-outside-init
         result = self.runner.invoke(app, ["--execute", "git status"])
 
         assert result.exit_code == 1
-        output = result.stdout + result.stderr
+        output = result.output
         assert "Unexpected error occurred" in output
 
     @patch("git_sensei.cli.is_git_available")
