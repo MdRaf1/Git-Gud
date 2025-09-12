@@ -3,13 +3,13 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "git-gud"
+name = "git-sensei"
 version = "0.1.0"
 description = "An AI-powered command-line assistant for safer Git usage"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [
-    {name = "Git Gud Team", email = "team@gitgud.dev"}
+    {name = "Md. Rafi", email = "refathosain41@gmail.com"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -33,6 +33,7 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.10.0",
+    "pytest-asyncio>=0.21.0",
     "black>=23.0.0",
     "flake8>=6.0.0",
     "mypy>=1.0.0",
@@ -41,16 +42,16 @@ dev = [
 ]
 
 [project.scripts]
-git-gud = "git_gud.cli:app"
+git-sensei = "git_sensei.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/git-gud/git-gud"
-Repository = "https://github.com/git-gud/git-gud"
-Issues = "https://github.com/git-gud/git-gud/issues"
+Homepage = "https://github.com/MdRaf1/Git-sensei"
+Repository = "https://github.com/MdRaf1/Git-sensei"
+Issues = "https://github.com/MdRaf1/Git-sensei/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["git_gud*"]
+include = ["git_sensei*"]
 
 [tool.black]
 line-length = 88
@@ -67,7 +68,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "--cov=git_gud --cov-report=term-missing"
+addopts = "--cov=git_sensei --cov-report=term-missing"
 
 [tool.isort]
 profile = "black"

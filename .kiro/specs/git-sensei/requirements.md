@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Git Gud is an AI-powered command-line assistant designed to make Git usage safer and more intuitive. The tool translates natural language into Git commands and provides proactive advice to prevent common mistakes. This Phase 1 focuses on building a solid, safe foundation with core CLI functionality, Git interaction capabilities, and comprehensive safety mechanisms before implementing AI features.
+Git sensei is an AI-powered command-line assistant designed to make Git usage safer and more intuitive. The tool translates natural language into Git commands and provides proactive advice to prevent common mistakes. This Phase 1 focuses on building a solid, safe foundation with core CLI functionality, Git interaction capabilities, and comprehensive safety mechanisms before implementing AI features.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ Git Gud is an AI-powered command-line assistant designed to make Git usage safer
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `git-gud --execute "<git_command>"` THEN the system SHALL parse and process the Git command
+1. WHEN the user runs `git-sensei --execute "<git_command>"` THEN the system SHALL parse and process the Git command
 2. WHEN the user provides a command string THEN the system SHALL capture the entire input as a single string
 3. WHEN the CLI is invoked THEN the system SHALL provide clear usage instructions if no arguments are provided
 4. WHEN invalid arguments are provided THEN the system SHALL display helpful error messages

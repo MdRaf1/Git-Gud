@@ -1,5 +1,5 @@
 """
-Test package for Git Gud.
+Test package for Git sensei.
 
-This package contains all unit and integration tests for the Git Gud application.
+This package contains all unit and integration tests for the Git sensei application.
 """

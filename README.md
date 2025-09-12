@@ -1,10 +1,14 @@
-# Git Gud
+<p align="center">
+  <img src="assets/logo.png" alt="Git sensei Logo" width="300"/>
+</p>
+
+# Git sensei
 
 An AI-powered command-line assistant for safer Git usage.
 
 ## Overview
 
-Git Gud is designed to make Git usage safer and more intuitive by providing proactive advice and preventing common mistakes. This Phase 1 implementation focuses on building a solid, safe foundation with core CLI functionality, Git interaction capabilities, and comprehensive safety mechanisms.
+Git sensei is designed to make Git usage safer and more intuitive by providing proactive advice and preventing common mistakes. This Phase 1 implementation focuses on building a solid, safe foundation with core CLI functionality, Git interaction capabilities, and comprehensive safety mechanisms.
 
 ## Features
 
@@ -25,15 +29,15 @@ Git Gud is designed to make Git usage safer and more intuitive by providing proa
 ### Method 1: Install from PyPI (Recommended)
 
 ```bash
-pip install git-gud
+pip install git-sensei
 ```
 
 ### Method 2: Install from Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/git-gud/git-gud.git
-cd git-gud
+git clone https://github.com/MdRaf1/Git-sensei.git
+cd Git-sensei
 
 # Install the package
 pip install .
@@ -46,8 +50,8 @@ pip install -e ".[dev]"
 
 ```bash
 # Clone the repository
-git clone https://github.com/git-gud/git-gud.git
-cd git-gud
+git clone https://github.com/MdRaf1/Git-sensei.git
+cd Git-sensei
 
 # Install dependencies
 pip install -r requirements.txt
@@ -59,8 +63,11 @@ pip install .
 ### Verify Installation
 
 ```bash
-# Check if git-gud is installed correctly
-git-gud --help
+# Check if git-sensei is installed correctly
+git-sensei --help
+
+# Or run as a module
+python -m git_sensei --help
 
 # Verify Git is available
 git --version
@@ -93,24 +100,24 @@ $env:OPENROUTER_API_KEY="your-api-key-here"
 
 ## Usage
 
-Git Gud offers two ways to interact with Git:
+Git sensei offers two ways to interact with Git:
 
 1. **Direct Git Commands** (Phase 1): Execute specific Git commands with safety checks
 2. **Natural Language** (Phase 2): Describe what you want to do in plain English
 
 ### Natural Language Interface (Phase 2)
 
-Describe what you want to do in natural language, and Git Gud will translate it to the appropriate Git command:
+Describe what you want to do in natural language, and Git sensei will translate it to the appropriate Git command:
 
 ```bash
 # Natural language examples
-git-gud show me the current status
-git-gud list all branches
-git-gud show me the last 5 commits
-git-gud create a new branch called feature-auth
-git-gud switch to the main branch
-git-gud show differences since last commit
-git-gud add all files and commit with message "fix bug"
+git-sensei show me the current status
+git-sensei list all branches
+git-sensei show me the last 5 commits
+git-sensei create a new branch called feature-auth
+git-sensei switch to the main branch
+git-sensei show differences since last commit
+git-sensei add all files and commit with message "fix bug"
 ```
 
 ### Direct Command Execution (Phase 1)
@@ -119,21 +126,21 @@ Execute Git commands directly with built-in protection against dangerous operati
 
 ```bash
 # Execute safe Git commands (no confirmation required)
-git-gud --execute "git status"
-git-gud --execute "git log --oneline -10"
-git-gud --execute "git diff"
-git-gud --execute "git branch -a"
+git-sensei --execute "git status"
+git-sensei --execute "git log --oneline -10"
+git-sensei --execute "git diff"
+git-sensei --execute "git branch -a"
 
 # Execute potentially dangerous commands (requires confirmation)
-git-gud --execute "git reset --hard HEAD~1"
-git-gud --execute "git push --force origin main"
-git-gud --execute "git clean -fd"
+git-sensei --execute "git reset --hard HEAD~1"
+git-sensei --execute "git push --force origin main"
+git-sensei --execute "git clean -fd"
 ```
 
 ### Command Line Options
 
 ```bash
-git-gud [OPTIONS] [PHRASE]...
+git-sensei [OPTIONS] [PHRASE]...
 
 Arguments:
   [PHRASE]...         Natural language description of what you want to do
@@ -148,33 +155,33 @@ Options:
 #### Safe Operations (Execute Immediately)
 ```bash
 # Check repository status
-git-gud -e "git status"
+git-sensei -e "git status"
 
 # View commit history
-git-gud -e "git log --graph --oneline -10"
+git-sensei -e "git log --graph --oneline -10"
 
 # Show differences
-git-gud -e "git diff HEAD~1"
+git-sensei -e "git diff HEAD~1"
 
 # List branches
-git-gud -e "git branch -v"
+git-sensei -e "git branch -v"
 ```
 
 #### Dangerous Operations (Require Confirmation)
 ```bash
 # Force push (will prompt for confirmation)
-git-gud -e "git push --force origin feature-branch"
+git-sensei -e "git push --force origin feature-branch"
 
 # Hard reset (will prompt for confirmation)  
-git-gud -e "git reset --hard HEAD~3"
+git-sensei -e "git reset --hard HEAD~3"
 
 # Clean untracked files (will prompt for confirmation)
-git-gud -e "git clean -fd"
+git-sensei -e "git clean -fd"
 ```
 
 ### Interactive Confirmation
 
-When Git Gud detects a dangerous operation, it will:
+When Git sensei detects a dangerous operation, it will:
 
 1. Display a warning message explaining the risks
 2. Show which dangerous patterns were detected
@@ -190,7 +197,7 @@ Type 'yes' to proceed with this dangerous operation: yes
 
 ## Safety Features
 
-Git Gud automatically detects and warns about dangerous operations including:
+Git sensei automatically detects and warns about dangerous operations including:
 
 - Force push operations (`git push --force`)
 - Hard resets (`git reset --hard`)
@@ -207,14 +214,14 @@ Git Gud automatically detects and warns about dangerous operations including:
 
 ```bash
 # Clone the repository
-git clone https://github.com/git-gud/git-gud.git
-cd git-gud
+git clone https://github.com/MdRaf1/Git-sensei.git
+cd Git-sensei
 
 # Install in development mode with all dev dependencies
 pip install -e ".[dev]"
 
 # Verify installation
-git-gud --help
+git-sensei --help
 ```
 
 ### Quick Development Setup
@@ -232,7 +239,7 @@ pre-commit install
 pytest
 
 # Verify the CLI works
-git-gud --help
+git-sensei --help
 ```
 
 ### Running Tests
@@ -242,7 +249,7 @@ git-gud --help
 pytest
 
 # Run tests with coverage report
-pytest --cov=git_gud --cov-report=term-missing
+pytest --cov=git_sensei --cov-report=term-missing
 
 # Run specific test file
 pytest tests/test_cli.py
@@ -255,19 +262,19 @@ pytest -v
 
 ```bash
 # Format code with black
-black git_gud/ tests/
+black git_sensei/ tests/
 
 # Sort imports with isort
-isort git_gud/ tests/
+isort git_sensei/ tests/
 
 # Type checking with mypy
-mypy git_gud/
+mypy git_sensei/
 
 # Lint with flake8
-flake8 git_gud/ tests/
+flake8 git_sensei/ tests/
 
 # Run all quality checks
-black git_gud/ tests/ && isort git_gud/ tests/ && mypy git_gud/ && flake8 git_gud/ tests/
+black git_sensei/ tests/ && isort git_sensei/ tests/ && mypy git_sensei/ && flake8 git_sensei/ tests/
 ```
 
 ### Building and Distribution
@@ -277,7 +284,7 @@ black git_gud/ tests/ && isort git_gud/ tests/ && mypy git_gud/ && flake8 git_gu
 python -m build
 
 # Install locally from built package
-pip install dist/git_gud-*.whl
+pip install dist/git_sensei-*.whl
 
 # Upload to PyPI (maintainers only)
 python -m twine upload dist/*
@@ -286,7 +293,7 @@ python -m twine upload dist/*
 ### Project Structure
 
 ```
-git_gud/
+git_sensei/
 ├── __init__.py          # Package initialization
 ├── cli.py              # Command-line interface
 ├── git_ops.py          # Git command execution
@@ -306,10 +313,10 @@ git_gud/
 
 ### Common Issues
 
-#### "git-gud: command not found"
-- Ensure you've installed the package: `pip install git-gud`
+#### "git-sensei: command not found"
+- Ensure you've installed the package: `pip install git-sensei`
 - Check that your Python scripts directory is in your PATH
-- Try running with full path: `python -m git_gud.cli --help`
+- Try running with module: `python -m git_sensei --help`
 
 #### "Git is not installed or not available in PATH"
 - Install Git from https://git-scm.com/downloads
@@ -317,7 +324,7 @@ git_gud/
 - On Windows, make sure Git is added to your PATH during installation
 
 #### Permission Errors
-- On Unix systems, you may need to use `pip install --user git-gud`
+- On Unix systems, you may need to use `pip install --user git-sensei`
 - Or use a virtual environment: `python -m venv venv && source venv/bin/activate`
 
 #### Import Errors During Development
@@ -333,8 +340,41 @@ This project is licensed under the GNU General Public License v3.0 (GPL-3.0) —
 
 Contributions are welcome! Please read the contributing guidelines and submit pull requests for any improvements.
 
+## Demo Script
+
+For a perfect live demonstration of Git sensei's capabilities, follow this sequence:
+
+```bash
+# Initialize a demo repository
+mkdir git-sensei-demo && cd git-sensei-demo
+git init
+git config user.name "Demo User"
+git config user.email "demo@example.com"
+
+# Part 1: Show Git sensei is SAFE 🛡️
+echo "# Git sensei Safety Demo"
+git-sensei -e "git reset --hard HEAD~1"
+# (Shows safety prompt - respond with 'no')
+
+# Part 2: Show Git sensei is SIMPLE 🗣️
+echo "# Natural Language Interface"
+git-sensei "show me the current status"
+git-sensei "list all branches"
+
+# Part 3: Show Git sensei is SMART 🧠
+echo "# Context-Aware Intelligence"
+echo "Hello World" > demo.txt
+git-sensei "commit my new work"
+# (AI suggests adding the file first)
+
+# Part 4: Show Complete Workflow
+git-sensei -e "git add demo.txt"
+git-sensei -e "git commit -m 'Add demo file'"
+git-sensei "show me the commit history"
+```
+
 ## Roadmap
 
 - **Phase 1** ✅ (Complete): Core CLI functionality and safety mechanisms
 - **Phase 2** ✅ (Complete): AI-powered natural language to Git command translation
-- **Phase 3** (Planned): Advanced context awareness and personalized suggestions
+- **Phase 3** ✅ (Complete): Context-aware AI with repository state understanding

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Git Gud is designed as a modular Python CLI application that provides a safe interface to Git operations. The architecture emphasizes separation of concerns with distinct modules for command-line interface, Git interaction, and safety validation. The design prioritizes safety through proactive dangerous operation detection and user confirmation workflows.
+Git sensei is designed as a modular Python CLI application that provides a safe interface to Git operations. The architecture emphasizes separation of concerns with distinct modules for command-line interface, Git interaction, and safety validation. The design prioritizes safety through proactive dangerous operation detection and user confirmation workflows.
 
 ## Architecture
 

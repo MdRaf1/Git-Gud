@@ -158,7 +158,7 @@
 
 
   - Configure pyproject.toml with proper package metadata and dependencies
-  - Set up console script entry point for git-gud command
+  - Set up console script entry point for git-sensei command
   - Add development dependencies for testing and linting
   - Create requirements.txt for easy installation
   - Write installation and usage documentation in README

@@ -1,4 +1,4 @@
-# Git Gud - Core Dependencies
+# Git sensei - Core Dependencies
 # Install with: pip install -r requirements.txt
 # For development: pip install -e ".[dev]"
 
